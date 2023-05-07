@@ -1,8 +1,10 @@
-import os
 import json
+import os
+
 import redis
 import uvicorn
 from fastapi import FastAPI, Request
+from PIL import Image, ImageDraw, ImageFont
 
 app = FastAPI()
 
@@ -18,6 +20,34 @@ channel = os.getenv("REDIS_CHANNEL", "channel")
 # Subscribe to the channel(s) you're interested in
 redis_subscriber.subscribe(channel)
 
+font = ImageFont.truetype("/app/font.ttf", 48)
+
+
+def create_image_with_text(wh, text):
+    width, height = wh
+    img = Image.new('RGB', (480, 52), "black")
+    draw = ImageDraw.Draw(img)
+    draw.text((width, height), text, font=font, fill="green")
+    return img
+
+
+def save_gif(file_id, text):
+    frames = []
+    x, y = 0, 0
+    start_x = 20
+    diff = 12
+    text = text + "　" * 2
+    for i in range((font.font.getsize(text)[0][0] + start_x) // diff - 1):
+        new_frame = create_image_with_text((x + start_x, y), text * 10)
+        frames.append(new_frame)
+        x -= diff
+    frames[0].save(f'{file_id}.gif',
+                   format="GIF",
+                   append_images=frames[1:],
+                   save_all=True,
+                   duration=10,
+                   loop=0)
+
 
 # Define a callback function
 # that will be called each time a message is received
@@ -29,8 +59,9 @@ def handle_message(message):
     if data == b'quit':
         redis_subscriber.unsubscribe()
     else:
+        print(data)
+        save_gif(data['trigger_id'], data['text'])
         with open('data.json', 'a') as f:
-            print(data)
             f.write(data.decode('utf-8'))
 
 
