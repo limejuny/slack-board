@@ -2,7 +2,7 @@ import os
 import json
 import redis
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Form
 
 app = FastAPI()
 
@@ -29,7 +29,7 @@ def handle_message(message):
     if data == b'quit':
         redis_subscriber.unsubscribe()
     else:
-        with open('data.json', 'w') as f:
+        with open('data.json', 'a') as f:
             print(data)
             f.write(data.decode('utf-8'))
 
@@ -45,7 +45,7 @@ def start_subscriber():
 # Define a FastAPI route that publishes JSON data
 # to Redis and returns a 200 response
 @app.post("/")
-async def publish_data(data: dict):
+async def publish_data(data: dict = Form(...)):
     json_data = json.dumps(data)
     redis_client.publish(channel, json_data)
     return {"message": "Data published successfully."}
