@@ -3,9 +3,19 @@ import os
 
 import redis
 import uvicorn
+import logging
 from fastapi import FastAPI, Request
 from PIL import Image, ImageDraw, ImageFont
 from slack import WebClient
+
+log = logging.getLogger()
+log.setLevel(logging.INFO)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+handler.setFormatter(formatter)
+log.addHandler(handler)
 
 app = FastAPI()
 
@@ -63,14 +73,17 @@ def handle_message(message):
         redis_subscriber.unsubscribe()
     else:
         data = json.loads(data.decode('utf-8'))
-        print(data)
+        log.info(data)
         save_gif(data['trigger_id'], data['text'])
-        response = slack_client.files_upload(
-            channels=data['channel_id'],
-            file=f'{data["trigger_id"]}.gif',
-            initial_comment=data['text'],
-            title=data['text'],
-        )
+        try:
+            slack_client.files_upload(
+                channels=data['channel_id'],
+                file=f'{data["trigger_id"]}.gif',
+                initial_comment=data['text'],
+                title=data['text'],
+            )
+        except Exception as e:
+            log.error(e)
         with open('data.json', 'a') as f:
             f.write(json.dumps(data, indent=4, sort_keys=True) + '\n')
 
