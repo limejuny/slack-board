@@ -9,7 +9,9 @@ app = FastAPI()
 # Create a Redis client and subscriber instance
 redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"),
                            port=6379,
-                           db=0)
+                           db=0,
+                           password=os.getenv("REDIS_PASSWORD", ""),
+                           username=os.getenv("REDIS_USERNAME", ""))
 redis_subscriber = redis_client.pubsub()
 
 channel = os.getenv("REDIS_CHANNEL", "channel")
