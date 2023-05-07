@@ -59,10 +59,11 @@ def handle_message(message):
     if data == b'quit':
         redis_subscriber.unsubscribe()
     else:
+        data = json.loads(data.decode('utf-8'))
         print(data)
         save_gif(data['trigger_id'], data['text'])
         with open('data.json', 'a') as f:
-            f.write(data.decode('utf-8'))
+            f.write(json.dumps(data, indent=4, sort_keys=True) + '\n')
 
 
 # Start listening for messages on the subscribed channels
