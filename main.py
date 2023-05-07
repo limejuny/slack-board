@@ -65,15 +65,11 @@ def handle_message(message):
         data = json.loads(data.decode('utf-8'))
         print(data)
         save_gif(data['trigger_id'], data['text'])
-        # slack_client.files_upload(
-        #     channels=data['channel_id'],
-        #     file=f'{data["trigger_id"]}.gif',
-        #     initial_comment=data['text'],
-        #     title=data['text'],
-        # )
-        slack_client.chat_postMessage(
-            channel=data['channel_id'],
-            text=data['text'],
+        response = slack_client.files_upload(
+            channels=data['channel_id'],
+            file=f'{data["trigger_id"]}.gif',
+            initial_comment=data['text'],
+            title=data['text'],
         )
         with open('data.json', 'a') as f:
             f.write(json.dumps(data, indent=4, sort_keys=True) + '\n')
