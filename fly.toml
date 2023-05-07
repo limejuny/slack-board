@@ -7,7 +7,7 @@ app = "itopt-slack-board"
 primary_region = "nrt"
 
 [build]
-  image = "nginx"
+  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 8000
