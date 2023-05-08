@@ -30,14 +30,15 @@ channel = os.getenv("REDIS_CHANNEL", "channel")
 # Subscribe to the channel(s) you're interested in
 slack_client = WebClient(token=os.getenv("SLACK_BOT_TOKEN", ""))
 
-font = ImageFont.truetype("/app/font.ttf", 48)
+fontsize = 48
+font = ImageFont.truetype("/app/font.ttf", fontsize)
 
 
 def create_image_with_text(wh, text):
     width, height = wh
-    img = Image.new('RGB', (480, 52), "black")
+    img = Image.new('RGB', (520, fontsize + 4), "black")
     draw = ImageDraw.Draw(img)
-    draw.text((width, height), text, font=font, fill="green")
+    draw.text((width, height), text, font=font, fill=(0xB0, 0xFF, 0x2A))
     return img
 
 
@@ -45,7 +46,7 @@ def save_gif(file_id, text):
     frames = []
     x, y = 0, 0
     start_x = 20
-    diff = 12
+    diff = 14
     text = text + "　" * 2
     for i in range((font.font.getsize(text)[0][0] + start_x) // diff - 1):
         new_frame = create_image_with_text((x + start_x, y), text * 10)
