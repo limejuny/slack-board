@@ -1,9 +1,10 @@
 import json
+import logging
 import os
+from multiprocessing import Process
 
 import redis
 import uvicorn
-import logging
 from fastapi import FastAPI, Request
 from PIL import Image, ImageDraw, ImageFont
 from slack import WebClient
@@ -25,12 +26,8 @@ redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"),
                            db=0,
                            password=os.getenv("REDIS_PASSWORD", ""),
                            username=os.getenv("REDIS_USERNAME", ""))
-redis_subscriber = redis_client.pubsub()
-
 channel = os.getenv("REDIS_CHANNEL", "channel")
 # Subscribe to the channel(s) you're interested in
-redis_subscriber.subscribe(channel)
-
 slack_client = WebClient(token=os.getenv("SLACK_BOT_TOKEN", ""))
 
 font = ImageFont.truetype("/app/font.ttf", 48)
@@ -69,8 +66,6 @@ def handle_message(message):
     # if data is initial message, ignore it
     if data == 1:
         return
-    if data == b'quit':
-        redis_subscriber.unsubscribe()
     else:
         data = json.loads(data.decode('utf-8'))
         log.info(data)
@@ -90,8 +85,10 @@ def handle_message(message):
 
 # Start listening for messages on the subscribed channels
 def start_subscriber():
+    redis_subscriber = redis_client.pubsub()
+    redis_subscriber.subscribe(channel)
     while True:
-        message = redis_subscriber.get_message()
+        message = redis_subscriber.get_message(timeout=5)
         if message:
             handle_message(message)
 
@@ -101,14 +98,11 @@ def start_subscriber():
 @app.post("/")
 async def publish_data(request: Request):
     data = dict(await request.form())
-    json_data = json.dumps(data)
-    redis_client.publish(channel, json_data)
+    redis_client.publish(channel, json.dumps(data))
     return {"message": "Data published successfully."}
 
 
 # Start the subscriber and the FastAPI app using Uvicorn
 if __name__ == "__main__":
-    import multiprocessing
-    p = multiprocessing.Process(target=start_subscriber)
-    p.start()
+    Process(target=start_subscriber).start()
     uvicorn.run("main:app", host="0.0.0.0", port=8000)
