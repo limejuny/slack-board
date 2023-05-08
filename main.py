@@ -103,7 +103,7 @@ async def publish_data(request: Request):
     data = dict(await request.form())
     json_data = json.dumps(data)
     redis_client.publish(channel, json_data)
-    return {"message": "Data published successfully."}
+    return
 
 
 # Start the subscriber and the FastAPI app using Uvicorn
