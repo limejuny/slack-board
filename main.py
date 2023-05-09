@@ -63,12 +63,9 @@ def save_gif(file_id, text):
 # Define a callback function
 # that will be called each time a message is received
 def handle_message(message):
-    data = message['data']
-    # if data is initial message, ignore it
-    if data == 1:
-        return
-    else:
-        data = json.loads(data.decode('utf-8'))
+    log.info(message)
+    if message['type'] == 'message':
+        data = json.loads(message['data'].decode('utf-8'))
         log.info(data)
         save_gif(data['trigger_id'], data['text'])
         try:
@@ -82,6 +79,8 @@ def handle_message(message):
             log.error(e)
         with open('data.json', 'a') as f:
             f.write(json.dumps(data, indent=4, sort_keys=True) + '\n')
+    else:
+        return
 
 
 # Start listening for messages on the subscribed channels
