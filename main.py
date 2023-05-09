@@ -87,11 +87,9 @@ def handle_message(message):
 # Start listening for messages on the subscribed channels
 def start_subscriber():
     redis_subscriber = redis_client.pubsub()
-    redis_subscriber.subscribe(channel)
-    while True:
-        message = redis_subscriber.get_message(timeout=5)
-        if message:
-            handle_message(message)
+    redis_subscriber.subscribe(**{channel: handle_message})
+    redis_subscriber.subscribe(**{"ping": lambda m: log.debug(m)})
+    redis_subscriber.run_in_thread(sleep_time=2)
 
 
 # Define a FastAPI route that publishes JSON data
@@ -101,6 +99,11 @@ async def publish_data(request: Request):
     data = dict(await request.form())
     redis_client.publish(channel, json.dumps(data))
     return {"message": "Data published successfully."}
+
+@app.get("/up")
+async def up():
+    redis_client.publish("ping", "pong")
+    return {"message": "ping"}
 
 
 # Start the subscriber and the FastAPI app using Uvicorn
