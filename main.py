@@ -9,8 +9,10 @@ from fastapi import FastAPI, Request
 from PIL import Image, ImageDraw, ImageFont
 from slack import WebClient
 
+app = FastAPI()
+
 log = logging.getLogger()
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
@@ -24,7 +26,9 @@ filehandler.setFormatter(formatter)
 log.addHandler(handler)
 log.addHandler(filehandler)
 
-app = FastAPI()
+logging.getLogger("uvicorn.access").addFilter(
+    lambda record: ((record.args is not None) and (len(record.args) > 2) and
+                    (record.args[2] != '/up')))
 
 # Create a Redis client and subscriber instance
 redis_client = redis.Redis(host=os.getenv("REDIS_HOST", "localhost"),
@@ -104,6 +108,7 @@ async def publish_data(request: Request):
     data = dict(await request.form())
     redis_client.publish(channel, json.dumps(data))
     return {"message": "Data published successfully."}
+
 
 @app.get("/up")
 async def up():
