@@ -13,10 +13,16 @@ log = logging.getLogger()
 log.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
 handler.setFormatter(formatter)
+filehandler = logging.FileHandler('debug.log')
+filehandler.setLevel(logging.DEBUG)
+filehandler.setFormatter(formatter)
+
 log.addHandler(handler)
+log.addHandler(filehandler)
 
 app = FastAPI()
 
