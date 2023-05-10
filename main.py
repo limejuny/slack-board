@@ -72,7 +72,7 @@ def handle_message(message):
             slack_client.files_upload(
                 channels=data['channel_id'],
                 file=f'{data["trigger_id"]}.gif',
-                initial_comment=f'보낸 사람: @{data["user_name"]}',
+                initial_comment=f'보낸 사람: <@{data["user_id"]}>',
                 title=data['text'],
             )
         except Exception as e:
