@@ -88,7 +88,9 @@ def handle_message(message):
         except Exception as e:
             log.error(e)
         with open('data.json', 'a') as f:
-            f.write(json.dumps(data, indent=4, sort_keys=True) + '\n')
+            f.write(
+                json.dumps(data, indent=4, sort_keys=True, ensure_ascii=False) +
+                '\n')
     else:
         return
 
