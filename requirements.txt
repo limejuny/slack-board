@@ -15,6 +15,7 @@ Pillow==9.5.0
 pydantic==1.10.7
 python-dotenv==1.0.0
 python-multipart==0.0.6
+pytz==2023.3
 PyYAML==6.0
 redis==4.5.4
 slackclient==2.9.4

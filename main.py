@@ -3,16 +3,36 @@ import logging
 import os
 
 import uvicorn
+import pytz
 from fastapi import BackgroundTasks, FastAPI, Request
 from PIL import Image, ImageDraw, ImageFont
+from datetime import datetime
 from slack import WebClient
 
 app = FastAPI()
 
+
+class TZFormatter(logging.Formatter):
+
+    def converter(self, timestamp):
+        return datetime.fromtimestamp(timestamp, tz=pytz.UTC).astimezone(
+            pytz.timezone("Asia/Seoul"))
+
+    def formatTime(self, record, datefmt=None):
+        dt = self.converter(record.created)
+        if datefmt:
+            s = dt.strftime(datefmt)
+        else:
+            try:
+                s = dt.isoformat(timespec='milliseconds')
+            except TypeError:
+                s = dt.isoformat()
+        return s
+
+
 log = logging.getLogger()
 log.setLevel(logging.DEBUG)
-formatter = logging.Formatter(
-    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = TZFormatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
@@ -88,6 +108,7 @@ async def publish_data(request: Request, background_tasks: BackgroundTasks):
 
 @app.get("/up")
 async def up():
+    log.debug('up')
     return {"message": "ping"}
 
 
